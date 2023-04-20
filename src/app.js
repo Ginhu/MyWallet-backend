@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import { MongoClient } from "mongodb"
 import dotenv from "dotenv"
-import {signup, signin} from "/src/controllers/authorizationController.js"
+import {signup, signin} from "./controllers/authorizationController.js"
 
 const app = express()
 app.use(express.json())
