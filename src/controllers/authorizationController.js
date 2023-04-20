@@ -1,4 +1,3 @@
-import { func } from "joi"
 import { db } from "../app.js"
 import joi from "joi"
 import bcrypt from "bcrypt"
