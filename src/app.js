@@ -3,6 +3,8 @@ import cors from "cors"
 import { MongoClient, ObjectId } from "mongodb"
 import dotenv from "dotenv"
 import {signup, signin} from "./controllers/authorizationController.js"
+import joi from "joi"
+import dayjs from "dayjs"
 
 const app = express()
 app.use(express.json())
@@ -32,6 +34,35 @@ app.get("/login", async (req, res) => {
     const response = {transactions: transactions.reverse(), name: userFind.name}
 
     res.send(response)
+})
+
+app.post("/transactions", async (req, res) => {
+    const {authorization} = req.headers
+    const token = authorization?.replace("Bearer ", "")
+    const {value, description, type} = req.body
+
+    const bodySchema = joi.object({
+        value: joi.string().required(),
+        description: joi.string().required(),
+        type: joi.string().required(),
+        token: joi.string().required()
+    })
+
+    const validation = bodySchema.validate({value, description, type, token})
+    if(validation.error) return res.status(422).send("Formato inválido. Verifique o dado que está passando!")
+
+    const date = dayjs().format("DD/MM")
+
+    try {
+        const findUser = await db.collection("login").findOne({token})
+        await db.collection("transactions").insertOne({
+            date, description, type, value, userId: findUser.userId
+        })
+        res.status(201).send("Transação criada")
+    } catch (err) {
+        console.log(err.message)
+    }
+    
 })
 
 const PORT = process.env.PORT || 5000
