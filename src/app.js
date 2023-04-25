@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import { MongoClient, ObjectId } from "mongodb"
 import dotenv from "dotenv"
-import {signup, signin} from "./controllers/authorizationController.js"
+import {signup, signin, logout} from "./controllers/authorizationController.js"
 import joi from "joi"
 import dayjs from "dayjs"
 
@@ -24,20 +24,32 @@ app.post("/cadastro", signup)
 
 app.post("/login", signin)
 
+app.delete("/login", logout)
+
 app.get("/login", async (req, res) => {
     const {authorization} = req.headers
     const token = authorization?.replace("Bearer ", "")
     try {
         const userFind = await db.collection("login").findOne({token})
-
         if(!token || !userFind) return res.status(401).send("Login não detectado! Faça login novamente.")
+        res.sendStatus(200)
+    } catch (err) {
+        console.log(err.message)
+    }
+   
+})
+
+app.get("/transactions", async (req, res) => {
+    const {authorization} = req.headers
+    const token = authorization?.replace("Bearer ", "")
+    try {
+        const userFind = await db.collection("login").findOne({token})
         const transactions = await db.collection("transactions").find({userId: userFind.userId}).toArray()
         const response = {transactions: transactions.reverse(), name: userFind.name}
         res.send(response)
     } catch (err) {
         console.log(err.message)
     }
-   
 })
 
 app.post("/transactions", async (req, res) => {
@@ -73,19 +85,7 @@ app.post("/transactions", async (req, res) => {
     
 })
 
-app.delete("/login", async (req, res) => {
-    const {authorization} = req.headers
-    const token = authorization?.replace("Bearer ", "")
 
-    if(!token) return res.sendStatus(401)
-
-    try {
-        db.collection("login").deleteOne({token: token})
-        res.sendStatus(200)
-    } catch (err) {
-        console.log(err.message)
-    }
-})
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, ()=>console.log(`SERVER ON na porta ${PORT}`))

@@ -50,3 +50,17 @@ export async function signin(req, res) {
         res.send(err.message)
     }
 }
+
+export async function logout(req, res) {
+    const {authorization} = req.headers
+    const token = authorization?.replace("Bearer ", "")
+
+    if(!token) return res.sendStatus(401)
+
+    try {
+        db.collection("login").deleteOne({token: token})
+        res.sendStatus(200)
+    } catch (err) {
+        console.log(err.message)
+    }
+}
