@@ -36,8 +36,7 @@ export async function postTransactions(req, res) {
 }
 
 export async function deleteTransaction(req, res) {
-    const {authorization} = req.headers
-    const {id} = req.body
+    const {authorization, id} = req.headers
     if(!authorization) return res.sendStatus(401)
 
     try {
