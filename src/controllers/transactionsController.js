@@ -33,3 +33,17 @@ export async function postTransactions(req, res) {
         console.log(err.message)
     }
 }
+
+export async function deleteTransaction(req, res) {
+    const {authorization} = req.headers
+    const {id} = req.body
+    if(!authorization) return res.sendStatus(401)
+
+    try {
+        const result = await db.collection("transactions").deleteOne({_id: id})
+        if(result.deletedCount === 0) return res.send("Não há registro dessa transação")
+        res.sendStatus(200)
+    } catch (err) {
+        console.log(err.message)
+    }
+}
