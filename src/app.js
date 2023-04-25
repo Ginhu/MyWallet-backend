@@ -73,5 +73,19 @@ app.post("/transactions", async (req, res) => {
     
 })
 
+app.delete("/login", async (req, res) => {
+    const {authorization} = req.headers
+    const token = authorization?.replace("Bearer ", "")
+
+    if(!token) return res.sendStatus(401)
+
+    try {
+        db.collection("login").deleteOne({token: token})
+        res.sendStatus(200)
+    } catch (err) {
+        console.log(err.message)
+    }
+})
+
 const PORT = process.env.PORT || 5000
 app.listen(PORT, ()=>console.log(`SERVER ON na porta ${PORT}`))
