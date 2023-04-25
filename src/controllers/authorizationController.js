@@ -1,18 +1,9 @@
-import { db } from "../app.js"
-import joi from "joi"
+import { db } from "../database/database.connection.js"
 import bcrypt from "bcrypt"
 import { v4 as uuid } from "uuid"
 
-export async function signup (req, res) {
+export async function signup(req, res) {
     const {name, email, password} = req.body
-    const signupSchema = joi.object({
-        name: joi.string().required(),
-        email: joi.string().email().required(),
-        password: joi.string().min(3).required()
-    })
-
-    const validation = signupSchema.validate(req.body, {abortEarly: false})
-    if (validation.error) return res.status(422).send("Existe um ou mais campos inválidos")
 
     try {
         const user = await db.collection("users").findOne({email})
@@ -29,14 +20,6 @@ export async function signup (req, res) {
 
 export async function signin(req, res) {
     const {email, password} = req.body
-    const loginSchema = joi.object({
-        email: joi.string().email().required(),
-        password: joi.string().required()
-    })
-
-    const validation = loginSchema.validate(req.body, {abortEarly: false})
-
-    if(validation.error) return res.status(422).send("Dados informados não estão no formato correto")
 
     try {
         const findUser = await db.collection("users").findOne({email})
@@ -54,11 +37,22 @@ export async function signin(req, res) {
 export async function logout(req, res) {
     const {authorization} = req.headers
     const token = authorization?.replace("Bearer ", "")
-
     if(!token) return res.sendStatus(401)
-
+    
     try {
         db.collection("login").deleteOne({token: token})
+        res.sendStatus(200)
+    } catch (err) {
+        console.log(err.message)
+    }
+}
+
+export async function checklogin(req, res) {
+    const {authorization} = req.headers
+    const token = authorization?.replace("Bearer ", "")
+    try {
+        const userFind = await db.collection("login").findOne({token})
+        if(!token || !userFind) return res.status(401).send("Login não detectado! Faça login novamente.")
         res.sendStatus(200)
     } catch (err) {
         console.log(err.message)
