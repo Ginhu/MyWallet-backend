@@ -27,36 +27,44 @@ app.post("/login", signin)
 app.get("/login", async (req, res) => {
     const {authorization} = req.headers
     const token = authorization?.replace("Bearer ", "")
-    const userFind = await db.collection("login").findOne({token})
+    try {
+        const userFind = await db.collection("login").findOne({token})
 
-    if(!token || !userFind) return res.status(401).send("Login não encontrado! Faça login novamente.")
-    const transactions = await db.collection("transactions").find({userId: userFind.userId}).toArray()
-    const response = {transactions: transactions.reverse(), name: userFind.name}
-
-    res.send(response)
+        if(!token || !userFind) return res.status(401).send("Login não detectado! Faça login novamente.")
+        const transactions = await db.collection("transactions").find({userId: userFind.userId}).toArray()
+        const response = {transactions: transactions.reverse(), name: userFind.name}
+        res.send(response)
+    } catch (err) {
+        console.log(err.message)
+    }
+   
 })
 
 app.post("/transactions", async (req, res) => {
     const {authorization} = req.headers
     const token = authorization?.replace("Bearer ", "")
     const {value, description, type} = req.body
+    let value2 = parseFloat(value).toFixed(2)
+
 
     const bodySchema = joi.object({
-        value: joi.string().required(),
+        value: joi.number().required(),
         description: joi.string().required(),
-        type: joi.string().required(),
+        type: joi.valid("entrada", "saida").required(),
         token: joi.string().required()
     })
 
-    const validation = bodySchema.validate({value, description, type, token})
+    const validation = bodySchema.validate({value: value2, description, type, token})
     if(validation.error) return res.status(422).send("Formato inválido. Verifique o dado que está passando!")
-
+    if(!token) return res.status(401).send("Login não detectado! Faça login novamente.")
+ 
     const date = dayjs().format("DD/MM")
 
     try {
+
         const findUser = await db.collection("login").findOne({token})
         await db.collection("transactions").insertOne({
-            date, description, type, value, userId: findUser.userId
+            date, description, type, value: value2, userId: findUser.userId
         })
         res.status(201).send("Transação criada")
     } catch (err) {
