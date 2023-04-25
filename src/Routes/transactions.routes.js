@@ -7,6 +7,6 @@ const transactionsRouter = Router()
 
 transactionsRouter.get("/transactions", checkTransactions)
 transactionsRouter.post("/transactions",validateTransactionSchema(bodySchema) , postTransactions)
-transactionsRouter.delete("/delete", deleteTransaction)
+transactionsRouter.delete("/transactions", deleteTransaction)
 
 export default transactionsRouter
