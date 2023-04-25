@@ -41,7 +41,7 @@ export async function deleteTransaction(req, res) {
     if(!authorization) return res.sendStatus(401)
 
     try {
-        const result = await db.collection("transactions").deleteOne({_id: new ObjectId(id) })
+        const result = await db.collection("transactions").deleteOne({ _id: new ObjectId(id) })
         if(result.deletedCount === 0) return res.send("Não há registro dessa transação")
         res.sendStatus(200)
     } catch (err) {
